@@ -5,6 +5,7 @@ import Square from "./components/Square";
 import { TURNS } from "./constants";
 import { checkEndGame, checkWinner } from "./logic/board";
 import { WinnerModal } from "./components/WinnerModal";
+import { resetGameStorage, saveGameToStorage } from "./logic/storage";
 
 const App = () => {
   const [board, setBoard] = useState(() => {
@@ -23,8 +24,7 @@ const App = () => {
     setBoard(Array(9).fill(null));
     setTurn(TURNS.X);
     setWinner(null);
-    window.localStorage.removeItem("board");
-    window.localStorage.removeItem("turn");
+    resetGameStorage()
   }
   const updateBoard = (index) => {
     // validate to not update the board when is already marked or the game is over
@@ -36,8 +36,10 @@ const App = () => {
     const newTurn = turn === TURNS.X ? TURNS.O : TURNS.X;
     setTurn(newTurn);
     // save in the local storage
-    window.localStorage.setItem('board', JSON.stringify(newBoard));
-    window.localStorage.setItem('turn', newTurn);
+    saveGameToStorage({
+      board: newBoard,
+      turn: newTurn
+    })
     // check who wins
     const newWinner = checkWinner(newBoard);
     if (newWinner) {
