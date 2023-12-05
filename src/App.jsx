@@ -1,55 +1,21 @@
 /* eslint-disable react/prop-types */
 import { useState } from "react";
-
-const TURNS = {
-  X: 'x',
-  O: 'o',
-}
-
-const Square = ({ children, isSelected, updateBoard, index }) => {
-  const className = `square ${isSelected ? 'is-selected' : ''}`;
-
-  const handleClick = () => {
-    updateBoard(index);
-  };
-
-  return (
-    <div onClick={handleClick} className={className}>
-      {children}
-    </div>
-  )
-}
-
-const WINNER_COMBOS = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6],
-];
-
-const checkWinner = (boardToCheck) => {
-  for (const combo of WINNER_COMBOS) {
-    const [a, b, c] = combo;
-    if (
-      boardToCheck[a] &&
-      boardToCheck[a] === boardToCheck[b] &&
-      boardToCheck[a] === boardToCheck[c]
-    ) {
-      return boardToCheck[a];
-    }
-  }
-}
+import confetti from "canvas-confetti";
+import Square from "./components/Square";
+import { TURNS } from "./constants";
+import { checkEndGame, checkWinner } from "./logic/board";
+import { WinnerModal } from "./components/WinnerModal";
 
 const App = () => {
   const [board, setBoard] = useState(Array(9).fill(null));
   const [turn, setTurn] = useState(TURNS.X);
   const [winner, setWinner] = useState(null); // null if no one wins, and false when is a tie
 
+  const resetGame = () => {
+    setBoard(Array(9).fill(null));
+    setTurn(TURNS.X);
+    setWinner(null);
+  }
   const updateBoard = (index) => {
     // validate to not update the board when is already marked or the game is over
     if (board[index] || winner) return;
@@ -62,13 +28,17 @@ const App = () => {
     // check who wins
     const newWinner = checkWinner(newBoard);
     if (newWinner) {
+      confetti();
       setWinner(newWinner);
+    } else if (checkEndGame(newBoard)) {
+      setWinner(false); //tie
     }
   }
 
   return (
     <main className='board'>
       <h1>Tic Tac Toe</h1>
+      <button onClick={resetGame}>Empezar de Nuevo</button>
       <section className="game">
         {
           board.map((_, index) => {
@@ -93,6 +63,8 @@ const App = () => {
           {TURNS.O}
         </Square>
       </section>
+
+      <WinnerModal winner={winner} resetGame={resetGame}/>
     </main>
   )
 }
